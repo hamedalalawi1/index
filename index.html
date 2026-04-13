@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title data-id="th-modified">تطبيق المصاريف الذكي</title>
+    <!-- استيراد خطوط وحزم أيقونات -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* نظام ألوان داكن وأنيق (Dark Mode FinTech) */
+            --bg-main: #0B0F19;
+            --bg-card: #151A28;
+            --bg-input: #1E2536;
+            --text-main: #F1F5F9;
+            --text-muted: #94A3B8;
+            --accent: #10B981; /* أخضر للإيجابيات/الإضافات */
+            --danger: #EF4444; /* أحمر للتجاوزات */
+            --warning: #F59E0B; /* برتقالي للتنبيه */
+            --primary: #3B82F6; /* أزرق للواجهة */
+            --border-color: #2E364F;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding-bottom: 80px; /* مساحة للقائمة السفلية */
+        }
+
+        /* حاوية التطبيق الرئيسية */
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* الهيدر والترحيب */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .user-info h1 {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .user-info p {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        /* بطاقة الرصيد الأساسية */
+        .balance-card {
+            background: linear-gradient(145deg, var(--bg-card), #1A2133);
+            border-radius: 24px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .balance-label {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 36px;
+            font-weight: 800;
+            display: flex;
+            align-items: baseline;
+            gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        .balance-currency {
+            font-size: 18px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        /* شريط الميزانية */
+        .budget-tracker {
+            background: rgba(255,255,255,0.03);
+            padding: 15px;
+            border-radius: 16px;
+        }
+
+        .budget-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .budget-header span:first-child { color: var(--text-muted); }
+        .budget-header span:last-child { font-weight: bold; }
+
+        .progress-bg {
+            height: 8px;
+            background: var(--bg-input);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.5s ease, background-color 0.3s ease;
+        }
+
+        /* نموذج الإدخال (Quick Add) */
+        .quick-add-section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-add {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn-add:active {
+            transform: scale(0.98);
+            background: #2563EB;
+        }
+
+        /* الرسم البياني */
+        .chart-container {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* سجل العمليات */
+        .transactions-section {
+            margin-bottom: 20px;
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .transaction-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tx-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .tx-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tx-details h4 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .tx-details p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .tx-right {
+            text-align: left;
+        }
+
+        .tx-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-main);
+        }
+        
+        .tx-actions {
+             margin-top: 5px;
+             display: flex;
+             gap: 10px;
+             justify-content: flex-end;
+        }
+
+        .action-icon {
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+        }
+        .action-icon.delete:hover { color: var(--danger); }
+
+        /* رسائل منبثقة */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+    </style>
+<meta property="og:title" content="تطبيق المصاريف الذكي" data-id="th-modified" ><meta name="description" content="financial_ledger_hamad" data-id="th-modified" ><meta property="og:description" content="financial_ledger_hamad" data-id="th-modified" ><meta property="og:image" content="https://tiiny.host/assets/logo-purple-bg.png" data-id="th-modified" ><meta property="og:url" content="https://dailybudget-474298.tiiny.site/" data-id="th-modified" ><meta property="og:type" content="website" data-id="th-modified" ><script defer data-domain="dailybudget-474298.tiiny.site" src="https://analytics.tiiny.site/js/plausible.js"></script><script type="text/javascript" src="https://tiiny.host/ad-script.js"></script></head>
+<body>
+
+    <!-- رسالة منبثقة -->
+    <div id="toast" class="toast">تمت العملية بنجاح</div>
+
+    <div class="app-container">
+        
+        <!-- الترحيب -->
+        <div class="header">
+            <div class="user-info">
+                <h1>مرحباً، حمد</h1>
+                <p id="current-date">أبريل 2026</p>
+            </div>
+            <div class="avatar">ح</div>
+        </div>
+
+        <!-- بطاقة الرصيد والتحليل -->
+        <div class="balance-card">
+            <div class="balance-label">إجمالي المنصرف (هذا الأسبوع)</div>
+            <div class="balance-amount">
+                <span id="total-spent">0.00</span>
+                <span class="balance-currency">ر.ع</span>
+            </div>
+            
+            <div class="budget-tracker">
+                <div class="budget-header">
+                    <span>الميزانية الأسبوعية: 121.5 ر.ع</span>
+                    <span id="budget-status">متبقي: 121.5</span>
+                </div>
+                <div class="progress-bg">
+                    <div id="budget-progress" class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- نموذج الإضافة السريعة -->
+        <div class="quick-add-section">
+            <h2 class="section-title"><i data-feather="plus-circle"></i> إضافة مصروف</h2>
+            
+            <div class="input-row form-group">
+                <input type="number" id="exp-amount" placeholder="المبلغ (مثال: 5.5)" step="0.1" inputmode="decimal">
+                <select id="exp-category">
+                    <option value="عام">عام</option>
+                    <option value="طعام">طعام ومقاهي</option>
+                    <option value="وقود">سيارة ووقود</option>
+                    <option value="فواتير">فواتير</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="exp-note" placeholder="ملاحظة (اختياري)...">
+            </div>
+
+            <div class="form-group" style="display: none;" id="edit-id-container">
+                <input type="hidden" id="exp-id">
+            </div>
+
+            <button class="btn-add" id="add-btn" onclick="saveTransaction()">
+                <i data-feather="check"></i> حفظ المصروف
+            </button>
+            <button class="btn-add" id="cancel-btn" onclick="cancelEdit()" style="display: none; background: var(--bg-input); margin-top: 10px; color: var(--text-main);">
+                 إلغاء التعديل
+            </button>
+        </div>
+
+        <!-- الرسم البياني -->
+        <div class="chart-container">
+            <h2 class="section-title" style="font-size: 15px;"><i data-feather="bar-chart-2"></i> نظرة على الأيام السبعة الماضية</h2>
+            <canvas id="expenseChart" height="200"></canvas>
+        </div>
+
+        <!-- سجل العمليات -->
+        <div class="transactions-section">
+            <h2 class="section-title"><i data-feather="list"></i> آخر العمليات</h2>
+            <div class="transaction-list" id="transaction-list">
+                <!-- سيتم إدراج العمليات هنا عبر JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // تهيئة الأيقونات
+        feather.replace();
+
+        // إعدادات التطبيق
+        const WEEKLY_BUDGET = 121.5;
+        let transactions = JSON.parse(localStorage.getItem('hamad_expenses')) || [];
+        let myChart = null;
+        let isEditing = false;
+
+        // تهيئة التاريخ
+        const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-OM', dateOptions);
+
+        // --- الوظائف الرئيسية ---
+
+        function initApp() {
+            updateDashboard();
+            renderTransactions();
+            initChart();
+        }
+
+        function saveTransaction() {
+            const amountInput = document.getElementById('exp-amount');
+            const noteInput = document.getElementById('exp-note');
+            const categoryInput = document.getElementById('exp-category');
+            const idInput = document.getElementById('exp-id');
+
+            const amount = parseFloat(amountInput.value);
+            
+            if (isNaN(amount) || amount <= 0) {
+                showToast("الرجاء إدخال مبلغ صحيح", true);
+                return;
+            }
+
+            if(isEditing) {
+                // تعديل
+                const id = parseInt(idInput.value);
+                const index = transactions.findIndex(t => t.id === id);
+                if(index > -1) {
+                    transactions[index].amount = amount;
+                    transactions[index].note = noteInput.value || categoryInput.value;
+                    transactions[index].category = categoryInput.value;
+                }
+                showToast("تم تحديث المصروف");
+                cancelEdit();
+            } else {
+                // إضافة جديدة
+                const newTx = {
+                    id: Date.now(),
+                    amount: amount,
+                    note: noteInput.value || categoryInput.value,
+                    category: categoryInput.value,
+                    date: new Date().toISOString()
+                };
+                transactions.unshift(newTx); // إضافة في البداية
+                showToast("تمت الإضافة بنجاح");
+            }
+
+            // الحفظ وإعادة الرسم
+            saveData();
+            
+            if(!isEditing){
+               amountInput.value = '';
+               noteInput.value = '';
+            }
+            
+            updateDashboard();
+            renderTransactions();
+            updateChart();
+        }
+
+        function deleteTransaction(id) {
+            if(confirm("هل تريد حذف هذه العملية؟")) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveData();
+                updateDashboard();
+                renderTransactions();
+                updateChart();
+                showToast("تم الحذف", true);
+            }
+        }
+
+        function editTransaction(id) {
+            const tx = transactions.find(t => t.id === id);
+            if(!tx) return;
+
+            document.getElementById('exp-amount').value = tx.amount;
+            document.getElementById('exp-note').value = tx.note;
+            document.getElementById('exp-category').value = tx.category;
+            document.getElementById('exp-id').value = tx.id;
+
+            isEditing = true;
+            document.getElementById('add-btn').innerHTML = '<i data-feather="save"></i> حفظ التعديلات';
+            document.getElementById('add-btn').style.background = 'var(--warning)';
+            document.getElementById('cancel-btn').style.display = 'block';
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            feather.replace();
+        }
+
+        function cancelEdit() {
+            isEditing = false;
+            document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-note').value = '';
+            document.getElementById('exp-id').value = '';
+            
+            document.getElementById('add-btn').innerHTML = '<i data-feather="check"></i> حفظ المصروف';
+            document.getElementById('add-btn').style.background = 'var(--primary)';
+            document.getElementById('cancel-btn').style.display = 'none';
+            feather.replace();
+        }
+
+        // --- وظائف التحديث والعرض ---
+
+        function updateDashboard() {
+            // حساب الإجمالي (بشكل مبسط نحسب كل السجل، يمكن تخصيصه لأسبوع محدد لاحقاً)
+            const total = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+            document.getElementById('total-spent').innerText = total.toFixed(1);
+
+            // تحديث شريط الميزانية
+            const percentage = Math.min((total / WEEKLY_BUDGET) * 100, 100);
+            const progressBar = document.getElementById('budget-progress');
+            progressBar.style.width = percentage + '%';
+
+            // تلوين الشريط حسب الصرف
+            if (percentage > 90) {
+                progressBar.style.backgroundColor = 'var(--danger)';
+            } else if (percentage > 70) {
+                progressBar.style.backgroundColor = 'var(--warning)';
+            } else {
+                progressBar.style.backgroundColor = 'var(--accent)';
+            }
+
+            // النص المتبقي
+            const remaining = Math.max(WEEKLY_BUDGET - total, 0);
+            document.getElementById('budget-status').innerText = `متبقي: ${remaining.toFixed(1)}`;
+        }
+
+        function renderTransactions() {
+            const list = document.getElementById('transaction-list');
+            list.innerHTML = '';
+
+            if (transactions.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:var(--text-muted); padding: 20px;">لا توجد مصاريف مسجلة.</div>';
+                return;
+            }
+
+            // عرض آخر 10 عمليات فقط للسرعة
+            const recentTx = transactions.slice(0, 10);
+
+            recentTx.forEach(tx => {
+                const dateObj = new Date(tx.date);
+                const timeStr = dateObj.toLocaleTimeString('ar-OM', { hour: '2-digit', minute: '2-digit' });
+                const dateStr = dateObj.toLocaleDateString('ar-OM', { month: 'short', day: 'numeric' });
+
+                // اختيار أيقونة بناء على التصنيف
+                let icon = 'dollar-sign';
+                if(tx.category === 'طعام') icon = 'coffee';
+                if(tx.category === 'وقود') icon = 'truck';
+                if(tx.category === 'فواتير') icon = 'file-text';
+
+                const html = `
+                    <div class="transaction-card">
+                        <div class="tx-left">
+                            <div class="tx-icon"><i data-feather="${icon}"></i></div>
+                            <div class="tx-details">
+                                <h4>${tx.note}</h4>
+                                <p>${dateStr} - ${timeStr}</p>
+                            </div>
+                        </div>
+                        <div class="tx-right">
+                            <div class="tx-amount">${tx.amount.toFixed(1)} ر.ع</div>
+                            <div class="tx-actions">
+                                <i data-feather="edit-2" class="action-icon" onclick="editTransaction(${tx.id})" width="14" height="14"></i>
+                                <i data-feather="trash-2" class="action-icon delete" onclick="deleteTransaction(${tx.id})" width="14" height="14"></i>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.insertAdjacentHTML('beforeend', html);
+            });
+            feather.replace();
+        }
+
+        // --- الرسم البياني ---
+        function initChart() {
+            const ctx = document.getElementById('expenseChart').getContext('2d');
+            Chart.defaults.color = '#94A3B8';
+            Chart.defaults.font.family = 'Tajawal';
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: getChartData(),
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)' },
+                            border: { display: false }
+                        },
+                        x: {
+                            grid: { display: false },
+                            border: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChart() {
+            if(myChart) {
+                myChart.data = getChartData();
+                myChart.update();
+            }
+        }
+
+        function getChartData() {
+            // تجميع المصاريف لآخر 7 أيام
+            const dataMap = {};
+            const labels = [];
+            const dataPoints = [];
+            
+            // إنشاء آخر 7 أيام فارغة
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const dateKey = d.toLocaleDateString('ar-OM', { month: 'short', day: 'numeric' });
+                dataMap[dateKey] = 0;
+                labels.push(dateKey);
+            }
+
+            // تعبئة البيانات
+            transactions.forEach(tx => {
+                const txDate = new Date(tx.date).toLocaleDateString('ar-OM', { month: 'short', day: 'numeric' });
+                if (dataMap[txDate] !== undefined) {
+                    dataMap[txDate] += tx.amount;
+                }
+            });
+
+            labels.forEach(l => dataPoints.push(dataMap[l]));
+
+            return {
+                labels: labels,
+                datasets: [{
+                    label: 'المصروف (ر.ع)',
+                    data: dataPoints,
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderRadius: 6
+                }]
+            };
+        }
+
+        // --- المساعدات ---
+        function saveData() {
+            localStorage.setItem('hamad_expenses', JSON.stringify(transactions));
+        }
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.background = isError ? 'var(--danger)' : 'var(--primary)';
+            toast.classList.add('show');
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+
+        // تشغيل التطبيق
+        window.onload = initApp;
+
+    </script>
+</body>
+</html>
+```
